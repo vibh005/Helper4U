@@ -8,8 +8,7 @@ PERN stack: PostgreSQL, Express, React (Vite + Tailwind, coming in later modules
 - [x] 3. Admin verification & service categories
 - [x] 4. Household profile + browse / search / filter helpers
 - [x] 5. Bookings & service plans (hourly / monthly / yearly)
-- [ ] 6. Reviews, service history, earnings view
-- [ ] 7. Complaints & admin analytics
+- [x] 6. Reviews, earnings, reliability, complaints, notifications, admin analytics
 - [ ] 8. Frontend (React) & deployment
 
 ## Run the backend
@@ -118,4 +117,26 @@ The rate is copied into the booking, so later rate changes never alter existing 
 - A helper can never be double-booked: an accept is refused if it overlaps an accepted booking on any shared weekday and time (checked under a database lock).
 - Address and phone numbers are shared only after the helper accepts.
 - Status flow: `pending` -> `accepted` / `rejected` / `cancelled` -> `completed`. Responses include a `phase`: `awaiting_response`, `expired`, `upcoming`, `ongoing`, `ready_to_complete`.
+
+## Reviews, earnings, complaints, notifications, analytics
+Run `npm run db:init` after pulling this module.
+
+| Method | Endpoint | Who | Notes |
+|---|---|---|---|
+| POST | /api/bookings/:id/review | household | `{ rating 1-5, comment }`, once per completed booking. Updates the helper's public rating |
+| GET | /api/browse/helpers/:id/reviews | household / admin | Paginated; reviewer names shortened ("Priya S.") |
+| DELETE | /api/admin/reviews/:id | admin | Moderation; rating is recomputed |
+| GET | /api/helpers/me/earnings | helper | View-only: total earned, expected from active jobs, per-month breakdown |
+| GET | /api/helpers/me/stats | helper | Rating and reliability score |
+| POST | /api/complaints | household / helper | `{ booking_id, category (no_show/misconduct/payment/quality/other), description }`; filed against the other party on that booking |
+| GET | /api/complaints | household / helper | Complaints I filed |
+| GET | /api/admin/complaints | admin | Filters `status`, `category` |
+| PATCH | /api/admin/complaints/:id | admin | `{ status (open/in_review/resolved/dismissed), resolution_note }`; note required to resolve or dismiss |
+| GET | /api/notifications | any user | `?unread=true`; response includes `unread_count` |
+| PATCH | /api/notifications/:id/read, POST /api/notifications/read-all | any user | |
+| GET | /api/admin/analytics | admin | KPIs: households, verified helpers, completion rate, reliability, satisfaction, monthly active users, etc., plus breakdowns and a 6-month trend |
+| GET | /api/admin/attendance | admin | Filters `status`, `from`, `to` |
+
+**Reliability score** (0-100) = attendance rate x share of accepted bookings the helper did not cancel. Helpers with no history start at 100.
+Notifications are created automatically for new requests, accept/reject, cancellations, completion, reviews, verification decisions and complaints.
 

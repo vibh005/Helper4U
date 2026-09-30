@@ -17,6 +17,8 @@ app.use('/api/helpers', require('./routes/helperRoutes'));
 app.use('/api/households', require('./routes/householdRoutes'));
 app.use('/api/browse', require('./routes/browseRoutes'));
 app.use('/api/bookings', require('./routes/bookingRoutes'));
+app.use('/api/complaints', require('./routes/complaintRoutes'));
+app.use('/api/notifications', require('./routes/notificationRoutes'));
 app.use('/api/categories', require('./routes/categoryRoutes'));
 app.use('/api/admin', require('./routes/adminRoutes'));
 

@@ -1,4 +1,5 @@
 const Browse = require('../db/browseModel');
+const Stats = require('../db/statsModel');
 const AppError = require('../utils/AppError');
 const asyncHandler = require('../utils/asyncHandler');
 const { getPaging, pageMeta } = require('../utils/pagination');
@@ -63,5 +64,6 @@ exports.getHelper = asyncHandler(async (req, res) => {
   if (!Number.isInteger(id) || id < 1) throw new AppError('Invalid id');
   const helper = await Browse.findOne(id);
   if (!helper) throw new AppError('Helper not found', 404);
+  helper.reliability = await Stats.reliability(helper.id);
   res.json({ success: true, helper });
 });

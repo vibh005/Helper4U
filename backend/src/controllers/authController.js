@@ -19,6 +19,7 @@ exports.register = asyncHandler(async (req, res) => {
   }
 
   const user = await User.create({ name, email, password, phone, city, role });
+  await User.touchLogin(user.id);
   sendAuth(res, user, 201);
 });
 
@@ -33,6 +34,7 @@ exports.login = asyncHandler(async (req, res) => {
   }
   if (!row.is_active) throw new AppError('Your account has been deactivated', 403);
 
+  await User.touchLogin(row.id);
   sendAuth(res, User.stripPassword(row));
 });
 

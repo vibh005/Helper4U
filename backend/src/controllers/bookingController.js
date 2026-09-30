@@ -6,6 +6,7 @@ const asyncHandler = require('../utils/asyncHandler');
 const { getPaging, pageMeta } = require('../utils/pagination');
 const { PLANS, DAYS } = require('../utils/constants');
 const D = require('../utils/dates');
+const notify = require('../utils/notify');
 
 const STATUSES = ['pending', 'accepted', 'rejected', 'cancelled', 'completed'];
 const TIME_RE = /^([01]\d|2[0-3]):[0-5]\d$/;
@@ -146,6 +147,10 @@ exports.create = asyncHandler(async (req, res) => {
     schedule_days, quantity, rate, total_price: round2(rate * quantity), address: address.trim(), notes: b.notes,
   });
   const booking = await Booking.getById(id);
+  notify(booking.helper_user_id, {
+    type: 'booking', title: 'New booking request',
+    message: `${booking.household_name} wants a ${b.plan_type} booking from ${b.start_date}`, link: `/bookings/${id}`,
+  });
   res.status(201).json({ success: true, booking: shape(booking, 'household') });
 });
 
@@ -195,6 +200,11 @@ exports.respond = asyncHandler(async (req, res) => {
       }
     });
   }
+  notify(booking.household_id, {
+    type: 'booking', title: decision === 'accept' ? 'Booking accepted' : 'Booking declined',
+    message: decision === 'accept' ? `${booking.helper_name} accepted your request` : (reason ? String(reason).slice(0, 120) : `${booking.helper_name} could not take this booking`),
+    link: `/bookings/${booking.id}`,
+  });
   res.json({ success: true, booking: shape(await Booking.getById(booking.id), 'helper') });
 });
 
@@ -207,6 +217,9 @@ exports.cancel = asyncHandler(async (req, res) => {
 
   const by = isAdmin ? 'admin' : isHousehold ? 'household' : 'helper';
   if (!(await Booking.cancel(booking.id, by, reason))) throw new AppError('This booking can no longer be cancelled');
+  const msg = { type: 'booking', title: 'Booking cancelled', message: reason || null, link: `/bookings/${booking.id}` };
+  if (by !== 'household') notify(booking.household_id, msg);
+  if (by !== 'helper') notify(booking.helper_user_id, msg);
   res.json({ success: true, booking: shape(await Booking.getById(booking.id), by) });
 });
 
@@ -217,6 +230,9 @@ exports.complete = asyncHandler(async (req, res) => {
   if (booking.status !== 'accepted') throw new AppError('Only accepted bookings can be completed');
   if (D.today() < booking.end_date) throw new AppError(`The service period ends on ${booking.end_date}; you can complete it then`);
   if (!(await Booking.complete(booking.id))) throw new AppError('This booking can no longer be completed');
+  notify(isHousehold ? booking.helper_user_id : booking.household_id, {
+    type: 'booking', title: 'Booking marked complete', message: isHousehold ? 'You can now expect your earnings to update' : 'Please leave a review for your helper', link: `/bookings/${booking.id}`,
+  });
   res.json({ success: true, booking: shape(await Booking.getById(booking.id), isHousehold ? 'household' : 'helper') });
 });
 

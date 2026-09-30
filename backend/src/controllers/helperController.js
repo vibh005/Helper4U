@@ -5,6 +5,8 @@ const AppError = require('../utils/AppError');
 const asyncHandler = require('../utils/asyncHandler');
 const { UPLOAD_DIR } = require('../middleware/upload');
 const Category = require('../db/categoryModel');
+const User = require('../db/userModel');
+const notify = require('../utils/notify');
 const { PLANS, DAYS, AVAILABILITY, DOC_TYPES } = require('../utils/constants');
 
 const TIME_RE = /^([01]\d|2[0-3]):[0-5]\d$/;
@@ -153,5 +155,8 @@ exports.submitVerification = asyncHandler(async (req, res) => {
     throw new AppError('Upload at least one identity document before submitting');
   }
   const updated = await Helper.setVerificationStatus(profile.id, 'pending');
+  for (const adminId of await User.adminIds()) {
+    notify(adminId, { type: 'verification', title: 'Helper awaiting verification', message: `${req.user.name} submitted documents`, link: `/admin/helpers/${profile.id}` });
+  }
   res.json({ success: true, message: 'Submitted for admin review', profile: updated });
 });

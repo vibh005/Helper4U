@@ -1,6 +1,8 @@
 const Admin = require('../db/adminModel');
 const Category = require('../db/categoryModel');
+const Stats = require('../db/statsModel');
 const AppError = require('../utils/AppError');
+const notify = require('../utils/notify');
 const asyncHandler = require('../utils/asyncHandler');
 const { getPaging, pageMeta } = require('../utils/pagination');
 
@@ -28,6 +30,7 @@ exports.listHelpers = asyncHandler(async (req, res) => {
 exports.getHelper = asyncHandler(async (req, res) => {
   const helper = await Admin.getHelperDetail(toId(req.params.id));
   if (!helper) throw new AppError('Helper not found', 404);
+  helper.reliability = await Stats.reliability(helper.id);
   res.json({ success: true, helper });
 });
 
@@ -57,11 +60,13 @@ exports.decideVerification = asyncHandler(async (req, res) => {
       throw new AppError('Approve at least one identity document before verifying this helper');
     }
     const updated = await Admin.decideVerification(id, 'verified', note);
+    notify(profile.user_id, { type: 'verification', title: 'You are verified!', message: 'Households can now find and book you.', link: '/helper/profile' });
     return res.json({ success: true, message: 'Helper verified', profile: updated });
   }
 
   if (!note || !note.trim()) throw new AppError('A note explaining the rejection is required');
   const updated = await Admin.decideVerification(id, 'rejected', note.trim());
+  notify(profile.user_id, { type: 'verification', title: 'Verification needs changes', message: note.trim().slice(0, 200), link: '/helper/profile' });
   res.json({ success: true, message: 'Helper rejected', profile: updated });
 });
 
