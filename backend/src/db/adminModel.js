@@ -1,15 +1,6 @@
 const { query } = require('../config/db');
 
-// Builds "WHERE a = $1 AND (b ILIKE $2 OR c ILIKE $2)" safely from [sqlWithPlaceholders, value] pairs.
-// Every "?" inside one condition refers to that condition's single value.
-function buildWhere(conds) {
-  const params = [];
-  const parts = conds.map(([sql, val]) => {
-    params.push(val);
-    return sql.split('?').join(`$${params.length}`);
-  });
-  return { where: parts.length ? 'WHERE ' + parts.join(' AND ') : '', params };
-}
+const { buildWhere } = require('../utils/sqlWhere');
 
 exports.listHelpers = async ({ status, service_type, search, limit, offset }) => {
   const conds = [];

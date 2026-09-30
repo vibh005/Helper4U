@@ -78,3 +78,25 @@ ON CONFLICT (slug) DO NOTHING;
 ALTER TABLE helper_profiles DROP CONSTRAINT IF EXISTS helper_profiles_service_type_check;
 ALTER TABLE helper_profiles ALTER COLUMN service_type TYPE VARCHAR(30);
 
+
+-- ---------- Module 4: household profiles + rating fields for browsing ----------
+
+CREATE TABLE IF NOT EXISTS household_profiles (
+  id              SERIAL PRIMARY KEY,
+  user_id         INTEGER NOT NULL UNIQUE REFERENCES users(id) ON DELETE CASCADE,
+  address         VARCHAR(255),
+  pincode         VARCHAR(10),
+  family_size     INTEGER CHECK (family_size BETWEEN 1 AND 30),
+  children_count  INTEGER NOT NULL DEFAULT 0 CHECK (children_count BETWEEN 0 AND 20),
+  has_pets        BOOLEAN NOT NULL DEFAULT FALSE,
+  notes           TEXT,
+  created_at      TIMESTAMP NOT NULL DEFAULT NOW(),
+  updated_at      TIMESTAMP NOT NULL DEFAULT NOW()
+);
+
+-- Filled in by the reviews module; needed now so profiles can show ratings
+ALTER TABLE helper_profiles ADD COLUMN IF NOT EXISTS avg_rating   NUMERIC(3,2) NOT NULL DEFAULT 0;
+ALTER TABLE helper_profiles ADD COLUMN IF NOT EXISTS review_count INTEGER      NOT NULL DEFAULT 0;
+
+CREATE INDEX IF NOT EXISTS idx_helper_profiles_browse
+  ON helper_profiles (verification_status, service_type);
