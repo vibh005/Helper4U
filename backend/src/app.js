@@ -16,6 +16,7 @@ app.use('/api/auth', require('./routes/authRoutes'));
 app.use('/api/helpers', require('./routes/helperRoutes'));
 app.use('/api/households', require('./routes/householdRoutes'));
 app.use('/api/browse', require('./routes/browseRoutes'));
+app.use('/api/bookings', require('./routes/bookingRoutes'));
 app.use('/api/categories', require('./routes/categoryRoutes'));
 app.use('/api/admin', require('./routes/adminRoutes'));
 

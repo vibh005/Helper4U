@@ -7,7 +7,7 @@ PERN stack: PostgreSQL, Express, React (Vite + Tailwind, coming in later modules
 - [x] 2. Helper profiles & document upload
 - [x] 3. Admin verification & service categories
 - [x] 4. Household profile + browse / search / filter helpers
-- [ ] 5. Bookings & service plans (hourly / monthly / yearly)
+- [x] 5. Bookings & service plans (hourly / monthly / yearly)
 - [ ] 6. Reviews, service history, earnings view
 - [ ] 7. Complaints & admin analytics
 - [ ] 8. Frontend (React) & deployment
@@ -91,4 +91,31 @@ Only **verified** helpers with an active account are visible. Email, phone and i
 Filters (all optional, combinable): `service_type`, `experience_level` (`entry` 0-2 yrs, `intermediate` 3-5, `expert` 6+), `min_experience`, `availability` (available/busy/unavailable), `day` (Mon..Sun), `plan` (hourly/monthly/yearly), `max_price` (needs `plan`; compares that plan's rate), `min_rating`, `city`, `search` (name or bio).
 Sorting: `sort=rating` (default) | `experience` | `newest` | `price_asc` | `price_desc` (price uses `plan`, default hourly).
 Example: `/api/browse/helpers?service_type=maid&day=Mon&plan=monthly&max_price=12000&sort=price_asc`
+
+## Bookings API
+Run `npm run db:init` after pulling this module. Set `APP_TIMEZONE` in `.env` (default `Asia/Kolkata`).
+
+| Method | Endpoint | Who | Notes |
+|---|---|---|---|
+| POST | /api/bookings | household | Request a helper. Body: `helper_id`, `plan_type`, `start_date` (YYYY-MM-DD), `start_time`, `end_time` (HH:MM daily window), plus per plan below. Optional `address` (defaults to household profile), `notes` |
+| GET | /api/bookings | household / helper | Own bookings (household) or assigned jobs and work history (helper). Filters: `status`, `plan_type`, `page`, `limit` |
+| GET | /api/bookings/:id | household / helper / admin | Only participants and admins can open it |
+| PATCH | /api/bookings/:id/respond | helper | `{ "decision": "accept" \| "reject", "reason" }` |
+| PATCH | /api/bookings/:id/cancel | household / helper / admin | `{ "reason" }` (required once accepted) |
+| POST | /api/bookings/:id/complete | household / helper | Allowed once the service period has ended |
+| POST | /api/bookings/:id/attendance | helper | `{ "date", "status": "present" \| "absent", "note" }`, one record per day (re-marking updates it) |
+| GET | /api/bookings/:id/attendance | participants / admin | Records plus present/absent summary |
+| GET | /api/admin/bookings | admin | Filters: `status`, `plan_type`, `helper_id`, `household_id`, `from`, `to`, `page`, `limit` |
+
+**Plans**
+- `hourly`: one session on `start_date`; price = hourly rate x hours in the time window.
+- `monthly`: `duration_months` 1-11 (default 1); price = monthly rate x months; `schedule_days` optional (defaults to the helper's working days).
+- `yearly`: `duration_years` 1-3 (default 1); price = yearly rate x years.
+The rate is copied into the booking, so later rate changes never alter existing bookings.
+
+**Rules enforced**
+- Only verified, active helpers who offer that plan can be booked, within their working days and hours.
+- A helper can never be double-booked: an accept is refused if it overlaps an accepted booking on any shared weekday and time (checked under a database lock).
+- Address and phone numbers are shared only after the helper accepts.
+- Status flow: `pending` -> `accepted` / `rejected` / `cancelled` -> `completed`. Responses include a `phase`: `awaiting_response`, `expired`, `upcoming`, `ongoing`, `ready_to_complete`.
 
