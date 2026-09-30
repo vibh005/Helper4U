@@ -19,8 +19,7 @@ CREATE TABLE IF NOT EXISTS users (
 CREATE TABLE IF NOT EXISTS helper_profiles (
   id                   SERIAL PRIMARY KEY,
   user_id              INTEGER NOT NULL UNIQUE REFERENCES users(id) ON DELETE CASCADE,
-  service_type         VARCHAR(20) NOT NULL
-                       CHECK (service_type IN ('maid', 'babysitter', 'nanny')),
+  service_type         VARCHAR(30) NOT NULL,   -- a service_categories.slug, validated by the API
   bio                  TEXT,
   experience_years     INTEGER NOT NULL DEFAULT 0 CHECK (experience_years BETWEEN 0 AND 60),
   skills               TEXT[]  NOT NULL DEFAULT '{}',
@@ -57,3 +56,25 @@ CREATE TABLE IF NOT EXISTS helper_documents (
 );
 
 CREATE INDEX IF NOT EXISTS idx_helper_docs_helper ON helper_documents(helper_id);
+
+-- ---------- Module 3: service categories (admin-managed) ----------
+
+CREATE TABLE IF NOT EXISTS service_categories (
+  id           SERIAL PRIMARY KEY,
+  slug         VARCHAR(30)  NOT NULL UNIQUE,
+  name         VARCHAR(60)  NOT NULL,
+  description  TEXT,
+  is_active    BOOLEAN      NOT NULL DEFAULT TRUE,
+  created_at   TIMESTAMP    NOT NULL DEFAULT NOW()
+);
+
+INSERT INTO service_categories (slug, name, description) VALUES
+  ('maid',       'Maid',       'Household cleaning, cooking and daily chores'),
+  ('babysitter', 'Babysitter', 'Short-term child care and supervision'),
+  ('nanny',      'Nanny',      'Full-time or long-term child care')
+ON CONFLICT (slug) DO NOTHING;
+
+-- Upgrade older databases created in Module 2 (harmless on new ones)
+ALTER TABLE helper_profiles DROP CONSTRAINT IF EXISTS helper_profiles_service_type_check;
+ALTER TABLE helper_profiles ALTER COLUMN service_type TYPE VARCHAR(30);
+

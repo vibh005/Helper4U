@@ -1,6 +1,7 @@
 const { Pool, types } = require('pg');
 
 types.setTypeParser(1700, (v) => parseFloat(v)); // NUMERIC -> number
+types.setTypeParser(20, (v) => parseInt(v, 10));  // COUNT(*) (bigint) -> number
 
 // Works with a local Postgres or a hosted one (Neon, Supabase, Render...).
 // Hosted databases need SSL: add DB_SSL=true in .env
