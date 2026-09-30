@@ -1,7 +1,6 @@
 const { query } = require('../config/db');
 const { buildWhere } = require('../utils/sqlWhere');
 
-// Only these columns are ever exposed to households: no email, phone or user id.
 const PUBLIC_COLS = `
   p.id, u.name, u.city, p.service_type, p.bio, p.experience_years, p.skills, p.languages,
   p.available_days, p.available_from, p.available_to, p.availability_status, p.preferred_plans,
@@ -9,7 +8,7 @@ const PUBLIC_COLS = `
   p.verified_at, TRUE AS verified`;
 
 const BASE = `FROM helper_profiles p JOIN users u ON u.id = p.user_id`;
-// Households only ever see verified helpers whose account is active
+
 const ALWAYS = ["p.verification_status = 'verified'", 'u.is_active = TRUE'];
 
 const RATE_COL = { hourly: 'p.hourly_rate', monthly: 'p.monthly_rate', yearly: 'p.yearly_rate' };
@@ -42,7 +41,7 @@ exports.search = async (f) => {
   const { rows } = await query(
     `SELECT ${PUBLIC_COLS} ${BASE} ${where} ORDER BY ${ORDER}, p.id ASC
      LIMIT ${Number(f.limit)} OFFSET ${Number(f.offset)}`,
-    params
+    params,
   );
   return { rows, total };
 };

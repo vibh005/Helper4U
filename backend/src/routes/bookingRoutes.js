@@ -8,7 +8,6 @@ router.use(protect);
 router.post('/', authorize('household'), c.create);
 router.get('/', authorize('household', 'helper'), c.listMine);
 
-// Participants and admins (checked inside the controller)
 router.get('/:id', c.getOne);
 router.patch('/:id/cancel', c.cancel);
 router.get('/:id/attendance', c.listAttendance);

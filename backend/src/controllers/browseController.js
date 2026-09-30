@@ -5,7 +5,6 @@ const asyncHandler = require('../utils/asyncHandler');
 const { getPaging, pageMeta } = require('../utils/pagination');
 const { PLANS, DAYS, AVAILABILITY } = require('../utils/constants');
 
-// experience level -> years range
 const LEVELS = { entry: [0, 2], intermediate: [3, 5], expert: [6, undefined] };
 const SORTS = ['rating', 'experience', 'newest', 'price_asc', 'price_desc'];
 
@@ -21,10 +20,6 @@ const oneOf = (v, name, list) => {
   return v;
 };
 
-// GET /api/browse/helpers
-//   ?service_type=maid &experience_level=entry|intermediate|expert &min_experience=2
-//   &availability=available &day=Mon &plan=monthly &max_price=20000 &min_rating=4
-//   &city=Delhi &search=asha &sort=rating|experience|newest|price_asc|price_desc &page=1 &limit=20
 exports.listHelpers = asyncHandler(async (req, res) => {
   const q = req.query;
   const f = {};
@@ -39,7 +34,10 @@ exports.listHelpers = asyncHandler(async (req, res) => {
     f.max_experience = max;
   }
   if (q.min_experience !== undefined) {
-    f.min_experience = Math.max(f.min_experience ?? 0, num(q.min_experience, 'min_experience', { max: 60, int: true }));
+    f.min_experience = Math.max(
+      f.min_experience ?? 0,
+      num(q.min_experience, 'min_experience', { max: 60, int: true }),
+    );
   }
   if (q.availability) f.availability = oneOf(q.availability, 'availability', AVAILABILITY);
   if (q.day) f.day = oneOf(q.day, 'day', DAYS);
@@ -58,7 +56,6 @@ exports.listHelpers = asyncHandler(async (req, res) => {
   res.json({ success: true, helpers: rows, ...pageMeta(total, page, limit) });
 });
 
-// GET /api/browse/helpers/:id
 exports.getHelper = asyncHandler(async (req, res) => {
   const id = Number(req.params.id);
   if (!Number.isInteger(id) || id < 1) throw new AppError('Invalid id');

@@ -6,7 +6,6 @@ const { uploadDocument } = require('../middleware/upload');
 
 router.use(protect);
 
-// Helper-only
 router.get('/me/profile', authorize('helper'), c.getMyProfile);
 router.put('/me/profile', authorize('helper'), c.saveMyProfile);
 router.post('/me/documents', authorize('helper'), uploadDocument, c.uploadDocument);
@@ -15,7 +14,6 @@ router.get('/me/earnings', authorize('helper'), stats.myEarnings);
 router.get('/me/stats', authorize('helper'), stats.myStats);
 router.post('/me/submit-verification', authorize('helper'), c.submitVerification);
 
-// Owner (helper) or admin - checked inside the controller
 router.get('/documents/:id/file', authorize('helper', 'admin'), c.downloadDocument);
 
 module.exports = router;

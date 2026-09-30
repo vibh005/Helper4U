@@ -8,7 +8,6 @@ const sendAuth = (res, user, status = 200) =>
 
 const EMAIL_RE = /^\S+@\S+\.\S+$/;
 
-// POST /api/auth/register  (public: household or helper only)
 exports.register = asyncHandler(async (req, res) => {
   const { name, email, password, phone, city, role } = req.body;
   if (!name || !email || !password) throw new AppError('Name, email and password are required');
@@ -23,7 +22,6 @@ exports.register = asyncHandler(async (req, res) => {
   sendAuth(res, user, 201);
 });
 
-// POST /api/auth/login
 exports.login = asyncHandler(async (req, res) => {
   const { email, password } = req.body;
   if (!email || !password) throw new AppError('Email and password are required');
@@ -38,18 +36,15 @@ exports.login = asyncHandler(async (req, res) => {
   sendAuth(res, User.stripPassword(row));
 });
 
-// GET /api/auth/me
 exports.getMe = asyncHandler(async (req, res) => {
   res.json({ success: true, user: req.user });
 });
 
-// PUT /api/auth/me  (update basic account details)
 exports.updateMe = asyncHandler(async (req, res) => {
   const user = await User.updateProfile(req.user.id, req.body);
   res.json({ success: true, user });
 });
 
-// PUT /api/auth/change-password
 exports.changePassword = asyncHandler(async (req, res) => {
   const { currentPassword, newPassword } = req.body;
   if (!currentPassword || !newPassword) throw new AppError('Both passwords are required');

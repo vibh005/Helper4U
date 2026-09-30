@@ -1,7 +1,6 @@
 const bcrypt = require('bcryptjs');
 const { query } = require('../config/db');
 
-// Columns that are safe to send to the client (never the password)
 const PUBLIC = 'id, name, email, phone, role, city, is_active, created_at, updated_at';
 
 exports.create = async ({ name, email, password, phone, city, role }) => {
@@ -9,13 +8,15 @@ exports.create = async ({ name, email, password, phone, city, role }) => {
   const { rows } = await query(
     `INSERT INTO users (name, email, password, phone, city, role)
      VALUES ($1, $2, $3, $4, $5, $6) RETURNING ${PUBLIC}`,
-    [name, email.toLowerCase().trim(), hash, phone || null, city || null, role || 'household']
+    [name, email.toLowerCase().trim(), hash, phone || null, city || null, role || 'household'],
   );
   return rows[0];
 };
 
 exports.findByEmailWithPassword = async (email) => {
-  const { rows } = await query('SELECT * FROM users WHERE email = $1', [email.toLowerCase().trim()]);
+  const { rows } = await query('SELECT * FROM users WHERE email = $1', [
+    email.toLowerCase().trim(),
+  ]);
   return rows[0];
 };
 
@@ -37,7 +38,7 @@ exports.updateProfile = async (id, { name, phone, city }) => {
        city = COALESCE($4, city),
        updated_at = NOW()
      WHERE id = $1 RETURNING ${PUBLIC}`,
-    [id, name ?? null, phone ?? null, city ?? null]
+    [id, name ?? null, phone ?? null, city ?? null],
   );
   return rows[0];
 };
@@ -47,7 +48,10 @@ exports.updatePassword = async (id, newPassword) => {
   await query('UPDATE users SET password = $2, updated_at = NOW() WHERE id = $1', [id, hash]);
 };
 
-exports.adminIds = async () => (await query("SELECT id FROM users WHERE role = 'admin' AND is_active = TRUE")).rows.map((r) => r.id);
+exports.adminIds = async () =>
+  (await query("SELECT id FROM users WHERE role = 'admin' AND is_active = TRUE")).rows.map(
+    (r) => r.id,
+  );
 
 exports.touchLogin = (id) => query('UPDATE users SET last_login_at = NOW() WHERE id = $1', [id]);
 

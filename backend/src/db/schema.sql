@@ -1,4 +1,3 @@
--- Helper4U database schema (PostgreSQL). Safe to run multiple times.
 
 CREATE TABLE IF NOT EXISTS users (
   id          SERIAL PRIMARY KEY,
@@ -14,12 +13,10 @@ CREATE TABLE IF NOT EXISTS users (
   updated_at  TIMESTAMP    NOT NULL DEFAULT NOW()
 );
 
--- ---------- Module 2: helper profiles & verification documents ----------
-
 CREATE TABLE IF NOT EXISTS helper_profiles (
   id                   SERIAL PRIMARY KEY,
   user_id              INTEGER NOT NULL UNIQUE REFERENCES users(id) ON DELETE CASCADE,
-  service_type         VARCHAR(30) NOT NULL,   -- a service_categories.slug, validated by the API
+  service_type         VARCHAR(30) NOT NULL,
   bio                  TEXT,
   experience_years     INTEGER NOT NULL DEFAULT 0 CHECK (experience_years BETWEEN 0 AND 60),
   skills               TEXT[]  NOT NULL DEFAULT '{}',
@@ -57,8 +54,6 @@ CREATE TABLE IF NOT EXISTS helper_documents (
 
 CREATE INDEX IF NOT EXISTS idx_helper_docs_helper ON helper_documents(helper_id);
 
--- ---------- Module 3: service categories (admin-managed) ----------
-
 CREATE TABLE IF NOT EXISTS service_categories (
   id           SERIAL PRIMARY KEY,
   slug         VARCHAR(30)  NOT NULL UNIQUE,
@@ -73,13 +68,8 @@ INSERT INTO service_categories (slug, name, description) VALUES
   ('babysitter', 'Babysitter', 'Short-term child care and supervision'),
   ('nanny',      'Nanny',      'Full-time or long-term child care')
 ON CONFLICT (slug) DO NOTHING;
-
--- Upgrade older databases created in Module 2 (harmless on new ones)
 ALTER TABLE helper_profiles DROP CONSTRAINT IF EXISTS helper_profiles_service_type_check;
 ALTER TABLE helper_profiles ALTER COLUMN service_type TYPE VARCHAR(30);
-
-
--- ---------- Module 4: household profiles + rating fields for browsing ----------
 
 CREATE TABLE IF NOT EXISTS household_profiles (
   id              SERIAL PRIMARY KEY,
@@ -93,15 +83,11 @@ CREATE TABLE IF NOT EXISTS household_profiles (
   created_at      TIMESTAMP NOT NULL DEFAULT NOW(),
   updated_at      TIMESTAMP NOT NULL DEFAULT NOW()
 );
-
--- Filled in by the reviews module; needed now so profiles can show ratings
 ALTER TABLE helper_profiles ADD COLUMN IF NOT EXISTS avg_rating   NUMERIC(3,2) NOT NULL DEFAULT 0;
 ALTER TABLE helper_profiles ADD COLUMN IF NOT EXISTS review_count INTEGER      NOT NULL DEFAULT 0;
 
 CREATE INDEX IF NOT EXISTS idx_helper_profiles_browse
   ON helper_profiles (verification_status, service_type);
-
--- ---------- Module 5: bookings & attendance ----------
 
 CREATE TABLE IF NOT EXISTS bookings (
   id               SERIAL PRIMARY KEY,
@@ -110,10 +96,10 @@ CREATE TABLE IF NOT EXISTS bookings (
   plan_type        VARCHAR(10) NOT NULL CHECK (plan_type IN ('hourly', 'monthly', 'yearly')),
   start_date       DATE NOT NULL,
   end_date         DATE NOT NULL,
-  start_time       TIME NOT NULL,   -- daily working window
+  start_time       TIME NOT NULL,
   end_time         TIME NOT NULL,
   schedule_days    TEXT[] NOT NULL DEFAULT '{}',
-  quantity         NUMERIC(6,2) NOT NULL,      -- hours (hourly) / months (monthly) / years (yearly)
+  quantity         NUMERIC(6,2) NOT NULL,
   rate             NUMERIC(10,2) NOT NULL,     -- helper's rate at booking time (price snapshot)
   total_price      NUMERIC(12,2) NOT NULL,
   address          VARCHAR(255) NOT NULL,
@@ -141,8 +127,6 @@ CREATE TABLE IF NOT EXISTS booking_attendance (
   marked_at   TIMESTAMP NOT NULL DEFAULT NOW(),
   UNIQUE (booking_id, work_date)
 );
-
--- ---------- Module 6: reviews, complaints, notifications, login tracking ----------
 
 ALTER TABLE users ADD COLUMN IF NOT EXISTS last_login_at TIMESTAMP;
 

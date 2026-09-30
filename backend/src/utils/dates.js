@@ -1,4 +1,3 @@
-// All dates are plain 'YYYY-MM-DD' strings; math is done in UTC so there are no timezone surprises.
 const DAY_NAMES = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
 const parse = (s) => {
@@ -10,10 +9,9 @@ const fmt = (dt) => dt.toISOString().slice(0, 10);
 exports.isValidDate = (s) => {
   if (typeof s !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(s)) return false;
   const dt = parse(s);
-  return !Number.isNaN(dt.getTime()) && fmt(dt) === s; // rejects 2026-02-31
+  return !Number.isNaN(dt.getTime()) && fmt(dt) === s;
 };
 
-// "Today" in the app's timezone (default India)
 exports.today = () =>
   new Date().toLocaleDateString('en-CA', { timeZone: process.env.APP_TIMEZONE || 'Asia/Kolkata' });
 
@@ -23,7 +21,6 @@ exports.addDays = (s, n) => {
   return fmt(dt);
 };
 
-// Adds whole months, clamping to the end of shorter months (Jan 31 + 1 month = Feb 28/29)
 exports.addMonths = (s, n) => {
   const dt = parse(s);
   const day = dt.getUTCDate();
@@ -43,7 +40,6 @@ exports.eachDate = function* (start, end) {
 exports.maxDate = (a, b) => (a > b ? a : b);
 exports.minDate = (a, b) => (a < b ? a : b);
 
-// 'HH:MM' or 'HH:MM:SS' -> minutes since midnight
 exports.toMinutes = (t) => {
   const [h, m] = String(t).split(':').map(Number);
   return h * 60 + m;

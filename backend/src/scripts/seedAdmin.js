@@ -1,4 +1,3 @@
-// Creates the first admin account (admins cannot self-register): npm run seed:admin
 require('dotenv').config();
 const { pool } = require('../config/db');
 const User = require('../db/userModel');

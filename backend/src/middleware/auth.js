@@ -3,7 +3,6 @@ const User = require('../db/userModel');
 const AppError = require('../utils/AppError');
 const asyncHandler = require('../utils/asyncHandler');
 
-// Verifies the Bearer token and attaches req.user
 exports.protect = asyncHandler(async (req, _res, next) => {
   const header = req.headers.authorization || '';
   const token = header.startsWith('Bearer ') ? header.split(' ')[1] : null;
@@ -22,7 +21,6 @@ exports.protect = asyncHandler(async (req, _res, next) => {
   next();
 });
 
-// Restricts a route to the given roles: authorize('admin'), authorize('helper','admin')
 exports.authorize =
   (...roles) =>
   (req, _res, next) => {
