@@ -47,6 +47,10 @@ exports.updatePassword = async (id, newPassword) => {
   await query('UPDATE users SET password = $2, updated_at = NOW() WHERE id = $1', [id, hash]);
 };
 
+exports.adminIds = async () => (await query("SELECT id FROM users WHERE role = 'admin' AND is_active = TRUE")).rows.map((r) => r.id);
+
+exports.touchLogin = (id) => query('UPDATE users SET last_login_at = NOW() WHERE id = $1', [id]);
+
 exports.checkPassword = (plain, hash) => bcrypt.compare(plain, hash);
 
 exports.stripPassword = (row) => {

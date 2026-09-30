@@ -6,11 +6,13 @@ exports.withTransaction = withTransaction;
 const SELECT = `
   SELECT b.*, hp.user_id AS helper_user_id, hp.service_type,
          hu.name AS helper_name, hu.phone AS helper_phone, hu.city AS helper_city, hp.avg_rating AS helper_rating,
-         hh.name AS household_name, hh.phone AS household_phone, hh.city AS household_city
+         hh.name AS household_name, hh.phone AS household_phone, hh.city AS household_city,
+         rv.id AS review_id, rv.rating AS review_rating
   FROM bookings b
   JOIN helper_profiles hp ON hp.id = b.helper_id
   JOIN users hu ON hu.id = hp.user_id
-  JOIN users hh ON hh.id = b.household_id`;
+  JOIN users hh ON hh.id = b.household_id
+  LEFT JOIN reviews rv ON rv.booking_id = b.id`;
 
 // The helper as needed for validating a new booking (must be a verified, active helper)
 exports.getBookableHelper = async (helperId) =>
