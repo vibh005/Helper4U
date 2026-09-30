@@ -5,7 +5,7 @@ PERN stack: PostgreSQL, Express, React (Vite + Tailwind, coming in later modules
 ## Modules
 - [x] 1. Backend foundation + authentication (household / helper / admin)
 - [x] 2. Helper profiles & document upload
-- [ ] 3. Admin verification & service categories
+- [x] 3. Admin verification & service categories
 - [ ] 4. Browse / search / filter helpers
 - [ ] 5. Bookings & service plans (hourly / monthly / yearly)
 - [ ] 6. Reviews, service history, earnings view
@@ -52,4 +52,23 @@ Run `npm run db:init` again after pulling this module (it adds new tables safely
 | GET | /api/helpers/documents/:id/file | Owner or admin only. Files are private and never served statically |
 
 Verification status flow: `unverified` -> `pending` -> `verified` / `rejected` (admin decision comes in Module 3).
+
+## Categories API
+| Method | Endpoint | Notes |
+|---|---|---|
+| GET | /api/categories | Public. Active service categories (maid, babysitter, nanny + any the admin adds) |
+
+## Admin API (role: admin)
+Run `npm run db:init` after pulling this module. All routes need an admin token.
+
+| Method | Endpoint | Notes |
+|---|---|---|
+| GET | /api/admin/helpers | Filters: `status`, `service_type`, `search` (name/email), `page`, `limit` |
+| GET | /api/admin/helpers/:id | Full profile, contact details and documents |
+| PATCH | /api/admin/documents/:id | `{ "status": "approved" \| "rejected" }` |
+| PATCH | /api/admin/helpers/:id/verification | `{ "decision": "approve" \| "reject", "note" }`. Only `pending` profiles. Approve needs an approved identity document; reject needs a note (shown to the helper, who can fix and resubmit) |
+| GET | /api/admin/users | Filters: `role`, `active`, `search`, `page`, `limit` |
+| PATCH | /api/admin/users/:id/status | `{ "is_active": false }` deactivates a user (not yourself, not other admins) |
+| GET / POST | /api/admin/categories | List all (incl. inactive) / create `{ name, description }` |
+| PUT | /api/admin/categories/:id | `{ name, description, is_active }`. Categories are deactivated, never deleted |
 

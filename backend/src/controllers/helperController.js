@@ -4,7 +4,8 @@ const Helper = require('../db/helperModel');
 const AppError = require('../utils/AppError');
 const asyncHandler = require('../utils/asyncHandler');
 const { UPLOAD_DIR } = require('../middleware/upload');
-const { SERVICE_TYPES, PLANS, DAYS, AVAILABILITY, DOC_TYPES } = require('../utils/constants');
+const Category = require('../db/categoryModel');
+const { PLANS, DAYS, AVAILABILITY, DOC_TYPES } = require('../utils/constants');
 
 const TIME_RE = /^([01]\d|2[0-3]):[0-5]\d$/;
 
@@ -17,7 +18,7 @@ function cleanProfile(body, { requireServiceType }) {
   if (requireServiceType && !body.service_type) throw new AppError('service_type is required');
 
   if (body.service_type !== undefined) {
-    if (!SERVICE_TYPES.includes(body.service_type)) throw new AppError(`service_type must be one of: ${SERVICE_TYPES.join(', ')}`);
+    if (typeof body.service_type !== 'string') throw new AppError('service_type must be text');
     d.service_type = body.service_type;
   }
   if (body.bio !== undefined) {
@@ -83,6 +84,10 @@ exports.getMyProfile = asyncHandler(async (req, res) => {
 exports.saveMyProfile = asyncHandler(async (req, res) => {
   const existing = await Helper.findByUserId(req.user.id);
   const data = cleanProfile(req.body, { requireServiceType: !existing });
+  if (data.service_type && !(await Category.isActiveSlug(data.service_type))) {
+    const active = (await Category.list({ activeOnly: true })).map((c) => c.slug);
+    throw new AppError(`service_type must be one of: ${active.join(', ')}`);
+  }
   const profile = existing ? await Helper.update(existing.id, data) : await Helper.create(req.user.id, data);
   res.status(existing ? 200 : 201).json({ success: true, profile });
 });

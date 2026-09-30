@@ -11,7 +11,9 @@ exports.errorHandler = (err, _req, res, _next) => {
   // PostgreSQL error codes
   if (err.code === '23505') {
     status = 409;
-    message = 'An account with this email already exists';
+    message = String(err.constraint || '').includes('email')
+      ? 'An account with this email already exists'
+      : 'This item already exists';
   } else if (err.code === '23514' || err.code === '22001') {
     status = 400;
     message = 'Invalid or too-long value provided';
