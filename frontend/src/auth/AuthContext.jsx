@@ -6,7 +6,8 @@ import { PageLoader } from '../components/ui';
 const AuthCtx = createContext(null);
 export const useAuth = () => useContext(AuthCtx);
 
-export const homeFor = (role) => (role === 'admin' ? '/admin' : role === 'helper' ? '/helper/dashboard' : '/browse');
+export const homeFor = (role) =>
+  role === 'admin' ? '/admin' : role === 'helper' ? '/helper/dashboard' : '/browse';
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
@@ -14,7 +15,8 @@ export function AuthProvider({ children }) {
 
   useEffect(() => {
     if (!localStorage.getItem(TOKEN_KEY)) return;
-    api.get('/auth/me')
+    api
+      .get('/auth/me')
       .then((r) => setUser(r.data.user))
       .catch(() => localStorage.removeItem(TOKEN_KEY))
       .finally(() => setLoading(false));
@@ -25,11 +27,19 @@ export function AuthProvider({ children }) {
     setUser(data.user);
     return data.user;
   };
-  const login = async (email, password) => accept((await api.post('/auth/login', { email, password })).data);
+  const login = async (email, password) =>
+    accept((await api.post('/auth/login', { email, password })).data);
   const register = async (body) => accept((await api.post('/auth/register', body)).data);
-  const logout = useCallback(() => { localStorage.removeItem(TOKEN_KEY); setUser(null); }, []);
+  const logout = useCallback(() => {
+    localStorage.removeItem(TOKEN_KEY);
+    setUser(null);
+  }, []);
 
-  return <AuthCtx.Provider value={{ user, loading, login, register, logout, setUser }}>{children}</AuthCtx.Provider>;
+  return (
+    <AuthCtx.Provider value={{ user, loading, login, register, logout, setUser }}>
+      {children}
+    </AuthCtx.Provider>
+  );
 }
 
 export function RequireRole({ roles, children }) {

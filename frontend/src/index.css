@@ -1,8 +1,8 @@
-@import "tailwindcss";
+@import 'tailwindcss';
 
 @theme {
-  --font-display: "Bricolage Grotesque", ui-sans-serif, system-ui, sans-serif;
-  --font-sans: "Public Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-display: 'Bricolage Grotesque', ui-sans-serif, system-ui, sans-serif;
+  --font-sans: 'Public Sans', ui-sans-serif, system-ui, sans-serif;
   --color-ink: #1e2a5a;
   --color-ink-soft: #4a5680;
   --color-paper: #f5f7fa;
@@ -19,10 +19,29 @@ body {
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
 }
-h1, h2, h3 { font-family: var(--font-display); letter-spacing: -0.015em; }
-:focus-visible { outline: 2px solid var(--color-marigold); outline-offset: 2px; }
-input:focus, select:focus, textarea:focus { outline: 2px solid var(--color-marigold); outline-offset: 0; border-color: var(--color-ink); }
+h1,
+h2,
+h3 {
+  font-family: var(--font-display);
+  letter-spacing: -0.015em;
+}
+:focus-visible {
+  outline: 2px solid var(--color-marigold);
+  outline-offset: 2px;
+}
+input:focus,
+select:focus,
+textarea:focus {
+  outline: 2px solid var(--color-marigold);
+  outline-offset: 0;
+  border-color: var(--color-ink);
+}
 
 @media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after { animation: none !important; transition: none !important; }
+  *,
+  *::before,
+  *::after {
+    animation: none !important;
+    transition: none !important;
+  }
 }

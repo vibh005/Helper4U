@@ -10,7 +10,6 @@ api.interceptors.request.use((cfg) => {
   return cfg;
 });
 
-// An expired or invalid session sends the user back to the login page.
 api.interceptors.response.use(
   (r) => r,
   (err) => {
@@ -20,15 +19,21 @@ api.interceptors.response.use(
       window.location.assign('/login');
     }
     return Promise.reject(err);
-  }
+  },
 );
 
-export const errMsg = (e) => e?.response?.data?.message || (e?.code === 'ERR_NETWORK' ? 'Cannot reach the server. Check that the backend is running.' : e?.message) || 'Something went wrong';
+export const errMsg = (e) =>
+  e?.response?.data?.message ||
+  (e?.code === 'ERR_NETWORK'
+    ? 'Cannot reach the server. Check that the backend is running.'
+    : e?.message) ||
+  'Something went wrong';
 
-// Builds "?a=1&b=2", skipping empty values
 export const qs = (params) => {
   const s = new URLSearchParams();
-  Object.entries(params).forEach(([k, v]) => { if (v !== '' && v != null) s.set(k, v); });
+  Object.entries(params).forEach(([k, v]) => {
+    if (v !== '' && v != null) s.set(k, v);
+  });
   const out = s.toString();
   return out ? `?${out}` : '';
 };

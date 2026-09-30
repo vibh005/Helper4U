@@ -1,5 +1,11 @@
 export const money = (n) =>
-  n == null ? '-' : new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(n);
+  n == null
+    ? '-'
+    : new Intl.NumberFormat('en-IN', {
+        style: 'currency',
+        currency: 'INR',
+        maximumFractionDigits: 0,
+      }).format(n);
 
 export const fdate = (s) => {
   if (!s) return '-';
@@ -35,6 +41,18 @@ export const COMPLAINT_CATEGORIES = {
   quality: 'Quality of service',
   other: 'Something else',
 };
-export const EXPERIENCE_LEVELS = { entry: 'Entry (0-2 years)', intermediate: 'Intermediate (3-5 years)', expert: 'Expert (6+ years)' };
+export const EXPERIENCE_LEVELS = {
+  entry: 'Entry (0-2 years)',
+  intermediate: 'Intermediate (3-5 years)',
+  expert: 'Expert (6+ years)',
+};
 
-export const fullDateTime = (s) => (s ? new Date(s).toLocaleString('en-IN', { day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit' }) : '');
+export const fullDateTime = (s) =>
+  s
+    ? new Date(s).toLocaleString('en-IN', {
+        day: 'numeric',
+        month: 'short',
+        hour: 'numeric',
+        minute: '2-digit',
+      })
+    : '';

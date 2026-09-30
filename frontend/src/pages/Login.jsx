@@ -16,11 +16,16 @@ export default function Login() {
 
   const submit = async (e) => {
     e.preventDefault();
-    setBusy(true); setError('');
+    setBusy(true);
+    setError('');
     try {
       const u = await login(form.email, form.password);
       navigate(state?.from || homeFor(u.role), { replace: true });
-    } catch (err) { setError(errMsg(err)); } finally { setBusy(false); }
+    } catch (err) {
+      setError(errMsg(err));
+    } finally {
+      setBusy(false);
+    }
   };
 
   return (
@@ -29,11 +34,34 @@ export default function Login() {
       <p className="mt-1 text-ink-soft">Welcome back. Enter your email and password to continue.</p>
       <form onSubmit={submit} className="mt-6 space-y-4 rounded-xl border border-line bg-white p-6">
         {error && <Alert>{error}</Alert>}
-        <Field label="Email"><Input type="email" required autoComplete="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} /></Field>
-        <Field label="Password"><Input type="password" required autoComplete="current-password" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} /></Field>
-        <Button type="submit" loading={busy} className="w-full">Log in</Button>
+        <Field label="Email">
+          <Input
+            type="email"
+            required
+            autoComplete="email"
+            value={form.email}
+            onChange={(e) => setForm({ ...form, email: e.target.value })}
+          />
+        </Field>
+        <Field label="Password">
+          <Input
+            type="password"
+            required
+            autoComplete="current-password"
+            value={form.password}
+            onChange={(e) => setForm({ ...form, password: e.target.value })}
+          />
+        </Field>
+        <Button type="submit" loading={busy} className="w-full">
+          Log in
+        </Button>
       </form>
-      <p className="mt-4 text-center text-sm text-ink-soft">New to Helper4U? <Link to="/register" className="font-semibold text-ink underline">Create an account</Link></p>
+      <p className="mt-4 text-center text-sm text-ink-soft">
+        New to Helper4U?{' '}
+        <Link to="/register" className="font-semibold text-ink underline">
+          Create an account
+        </Link>
+      </p>
     </div>
   );
 }
