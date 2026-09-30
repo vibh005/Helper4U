@@ -6,7 +6,7 @@ PERN stack: PostgreSQL, Express, React (Vite + Tailwind, coming in later modules
 - [x] 1. Backend foundation + authentication (household / helper / admin)
 - [x] 2. Helper profiles & document upload
 - [x] 3. Admin verification & service categories
-- [ ] 4. Browse / search / filter helpers
+- [x] 4. Household profile + browse / search / filter helpers
 - [ ] 5. Bookings & service plans (hourly / monthly / yearly)
 - [ ] 6. Reviews, service history, earnings view
 - [ ] 7. Complaints & admin analytics
@@ -71,4 +71,24 @@ Run `npm run db:init` after pulling this module. All routes need an admin token.
 | PATCH | /api/admin/users/:id/status | `{ "is_active": false }` deactivates a user (not yourself, not other admins) |
 | GET / POST | /api/admin/categories | List all (incl. inactive) / create `{ name, description }` |
 | PUT | /api/admin/categories/:id | `{ name, description, is_active }`. Categories are deactivated, never deleted |
+
+## Household API (role: household)
+Run `npm run db:init` after pulling this module.
+
+| Method | Endpoint | Notes |
+|---|---|---|
+| GET | /api/households/me/profile | Profile or `null` |
+| PUT | /api/households/me/profile | Create or partially update: `address`, `pincode` (6 digits), `family_size`, `children_count`, `has_pets`, `notes` |
+
+## Browse API (roles: household, admin)
+Only **verified** helpers with an active account are visible. Email, phone and internal ids are never exposed.
+
+| Method | Endpoint | Notes |
+|---|---|---|
+| GET | /api/browse/helpers | Filters below, `page`, `limit` (max 100) |
+| GET | /api/browse/helpers/:id | Full public profile of one verified helper |
+
+Filters (all optional, combinable): `service_type`, `experience_level` (`entry` 0-2 yrs, `intermediate` 3-5, `expert` 6+), `min_experience`, `availability` (available/busy/unavailable), `day` (Mon..Sun), `plan` (hourly/monthly/yearly), `max_price` (needs `plan`; compares that plan's rate), `min_rating`, `city`, `search` (name or bio).
+Sorting: `sort=rating` (default) | `experience` | `newest` | `price_asc` | `price_desc` (price uses `plan`, default hourly).
+Example: `/api/browse/helpers?service_type=maid&day=Mon&plan=monthly&max_price=12000&sort=price_asc`
 
