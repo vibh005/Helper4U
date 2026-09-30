@@ -4,7 +4,7 @@ PERN stack: PostgreSQL, Express, React (Vite + Tailwind, coming in later modules
 
 ## Modules
 - [x] 1. Backend foundation + authentication (household / helper / admin)
-- [ ] 2. Helper profiles & document upload
+- [x] 2. Helper profiles & document upload
 - [ ] 3. Admin verification & service categories
 - [ ] 4. Browse / search / filter helpers
 - [ ] 5. Bookings & service plans (hourly / monthly / yearly)
@@ -38,3 +38,18 @@ PERN stack: PostgreSQL, Express, React (Vite + Tailwind, coming in later modules
 | PUT | /api/auth/change-password | logged in | currentPassword, newPassword |
 
 Send the returned token as `Authorization: Bearer <token>`. Admins cannot self-register; use `npm run seed:admin`.
+
+## Helper API (role: helper)
+Run `npm run db:init` again after pulling this module (it adds new tables safely).
+
+| Method | Endpoint | Notes |
+|---|---|---|
+| GET | /api/helpers/me/profile | Returns profile (or `null`) and uploaded documents |
+| PUT | /api/helpers/me/profile | Create (needs `service_type`) or partially update. Fields: `service_type` (maid/babysitter/nanny), `bio`, `experience_years`, `skills[]`, `languages[]`, `available_days[]` (Mon..Sun), `available_from`/`available_to` (HH:MM), `availability_status`, `preferred_plans[]` (hourly/monthly/yearly), `hourly_rate`, `monthly_rate`, `yearly_rate` |
+| POST | /api/helpers/me/documents | multipart form: `document` (PDF/JPG/PNG, max 5 MB) + `doc_type` (identity, address_proof, police_verification, background_check, other) |
+| DELETE | /api/helpers/me/documents/:id | Not allowed while under review or once approved |
+| POST | /api/helpers/me/submit-verification | Needs at least one `identity` document; sets status to `pending` |
+| GET | /api/helpers/documents/:id/file | Owner or admin only. Files are private and never served statically |
+
+Verification status flow: `unverified` -> `pending` -> `verified` / `rejected` (admin decision comes in Module 3).
+

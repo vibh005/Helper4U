@@ -17,6 +17,11 @@ exports.errorHandler = (err, _req, res, _next) => {
     message = 'Invalid or too-long value provided';
   }
 
+  if (err.name === 'MulterError') {
+    status = 400;
+    message = err.code === 'LIMIT_FILE_SIZE' ? 'File is too large (max 5 MB)' : 'Invalid file upload';
+  }
+
   if (status === 500) console.error(err);
   res.status(status).json({
     success: false,

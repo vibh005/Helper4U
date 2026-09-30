@@ -13,6 +13,7 @@ if (process.env.NODE_ENV !== 'production') app.use(morgan('dev'));
 
 app.get('/api/health', (_req, res) => res.json({ success: true, message: 'Helper4U API is running' }));
 app.use('/api/auth', require('./routes/authRoutes'));
+app.use('/api/helpers', require('./routes/helperRoutes'));
 
 app.use(notFound);
 app.use(errorHandler);
