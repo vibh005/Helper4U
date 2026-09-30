@@ -1,6 +1,6 @@
 # Helper4U – Maid & Nanny Service Management Platform
 
-PERN stack: PostgreSQL, Express, React (Vite + Tailwind, coming in later modules), Node.
+PERN stack: PostgreSQL, Express, React (Vite + Tailwind), Node.
 
 ## Modules
 - [x] 1. Backend foundation + authentication (household / helper / admin)
@@ -9,7 +9,7 @@ PERN stack: PostgreSQL, Express, React (Vite + Tailwind, coming in later modules
 - [x] 4. Household profile + browse / search / filter helpers
 - [x] 5. Bookings & service plans (hourly / monthly / yearly)
 - [x] 6. Reviews, earnings, reliability, complaints, notifications, admin analytics
-- [ ] 8. Frontend (React) & deployment
+- [x] 8. Frontend (React) & deployment
 
 ## Run the backend
 1. Get a PostgreSQL database (see below) and put its connection string in `backend/.env` as `DATABASE_URL`.
@@ -140,3 +140,30 @@ Run `npm run db:init` after pulling this module.
 **Reliability score** (0-100) = attendance rate x share of accepted bookings the helper did not cancel. Helpers with no history start at 100.
 Notifications are created automatically for new requests, accept/reject, cancellations, completion, reviews, verification decisions and complaints.
 
+
+## Frontend (React + Vite + Tailwind)
+
+```bash
+cd frontend
+npm install
+cp .env.example .env     # optional locally; the dev server proxies /api to localhost:5000
+npm run dev              # http://localhost:5173
+npm run build            # production build in frontend/dist
+```
+
+Run the API first (`cd backend && npm install && npm run db:init && npm run seed:admin && npm run dev`).
+
+Screens by role:
+- **Household:** profile, browse and filter helpers, helper detail with live price estimate, booking, booking detail (attendance, review, cancel, report), complaints, notifications.
+- **Helper:** dashboard (requests, earnings, reliability, rating), profile with plans and rates, document upload, submit for verification, jobs.
+- **Admin:** overview analytics, helper verification, users, service categories, bookings and attendance, complaints.
+
+## Deployment
+
+| Part | Suggested host | Settings |
+|---|---|---|
+| Database | Neon / Supabase / Render Postgres | Copy the connection string |
+| API (`backend/`) | Render / Railway | Build `npm install`, start `npm start`, then run `npm run db:init` and `npm run seed:admin` once. Env: `DATABASE_URL`, `DB_SSL=true`, `JWT_SECRET` (long random), `CLIENT_URL` (your frontend URL, for CORS), `ADMIN_*`, `APP_TIMEZONE`, `NODE_ENV=production` |
+| Frontend (`frontend/`) | Vercel / Netlify | Build `npm run build`, output `dist`, env `VITE_API_URL=https://<your-api>/api`; add a rewrite of all paths to `/index.html` for client-side routing |
+
+Uploaded verification documents are stored on the API server's disk. On hosts with ephemeral disks, attach a persistent volume or move uploads to object storage.
