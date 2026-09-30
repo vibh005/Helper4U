@@ -100,3 +100,44 @@ ALTER TABLE helper_profiles ADD COLUMN IF NOT EXISTS review_count INTEGER      N
 
 CREATE INDEX IF NOT EXISTS idx_helper_profiles_browse
   ON helper_profiles (verification_status, service_type);
+
+-- ---------- Module 5: bookings & attendance ----------
+
+CREATE TABLE IF NOT EXISTS bookings (
+  id               SERIAL PRIMARY KEY,
+  household_id     INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  helper_id        INTEGER NOT NULL REFERENCES helper_profiles(id) ON DELETE CASCADE,
+  plan_type        VARCHAR(10) NOT NULL CHECK (plan_type IN ('hourly', 'monthly', 'yearly')),
+  start_date       DATE NOT NULL,
+  end_date         DATE NOT NULL,
+  start_time       TIME NOT NULL,   -- daily working window
+  end_time         TIME NOT NULL,
+  schedule_days    TEXT[] NOT NULL DEFAULT '{}',
+  quantity         NUMERIC(6,2) NOT NULL,      -- hours (hourly) / months (monthly) / years (yearly)
+  rate             NUMERIC(10,2) NOT NULL,     -- helper's rate at booking time (price snapshot)
+  total_price      NUMERIC(12,2) NOT NULL,
+  address          VARCHAR(255) NOT NULL,
+  notes            TEXT,
+  status           VARCHAR(20) NOT NULL DEFAULT 'pending'
+                   CHECK (status IN ('pending', 'accepted', 'rejected', 'cancelled', 'completed')),
+  rejection_reason TEXT,
+  cancel_reason    TEXT,
+  cancelled_by     VARCHAR(20),
+  responded_at     TIMESTAMP,
+  completed_at     TIMESTAMP,
+  created_at       TIMESTAMP NOT NULL DEFAULT NOW(),
+  updated_at       TIMESTAMP NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_bookings_helper    ON bookings (helper_id, status, start_date);
+CREATE INDEX IF NOT EXISTS idx_bookings_household ON bookings (household_id, created_at);
+
+CREATE TABLE IF NOT EXISTS booking_attendance (
+  id          SERIAL PRIMARY KEY,
+  booking_id  INTEGER NOT NULL REFERENCES bookings(id) ON DELETE CASCADE,
+  work_date   DATE NOT NULL,
+  status      VARCHAR(10) NOT NULL CHECK (status IN ('present', 'absent')),
+  note        VARCHAR(255),
+  marked_at   TIMESTAMP NOT NULL DEFAULT NOW(),
+  UNIQUE (booking_id, work_date)
+);
