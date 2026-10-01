@@ -153,6 +153,10 @@ npm run build            # production build in frontend/dist
 
 Run the API first (`cd backend && npm install && npm run db:init && npm run seed:admin && npm run dev`).
 
+Optional sample data: `npm run seed:demo` in `backend/` adds a household (`priya@demo.com`) and three verified helpers (`asha@demo.com`, `bina@demo.com`, `chitra@demo.com`). Password for all: `Demo@1234`.
+
+Full documentation: [PRD](docs/PRD.md) and [technical documentation](docs/TECHNICAL.md).
+
 Screens by role:
 - **Household:** profile, browse and filter helpers, helper detail with live price estimate, booking, booking detail (attendance, review, cancel, report), complaints, notifications.
 - **Helper:** dashboard (requests, earnings, reliability, rating), profile with plans and rates, document upload, submit for verification, jobs.
@@ -164,6 +168,6 @@ Screens by role:
 |---|---|---|
 | Database | Neon / Supabase / Render Postgres | Copy the connection string |
 | API (`backend/`) | Render / Railway | Build `npm install`, start `npm start`, then run `npm run db:init` and `npm run seed:admin` once. Env: `DATABASE_URL`, `DB_SSL=true`, `JWT_SECRET` (long random), `CLIENT_URL` (your frontend URL, for CORS), `ADMIN_*`, `APP_TIMEZONE`, `NODE_ENV=production` |
-| Frontend (`frontend/`) | Vercel / Netlify | Build `npm run build`, output `dist`, env `VITE_API_URL=https://<your-api>/api`; add a rewrite of all paths to `/index.html` for client-side routing |
+| Frontend (`frontend/`) | Vercel / Netlify | Build `npm run build`, output `dist`, env `VITE_API_URL=https://<your-api>/api`; `vercel.json` and `public/_redirects` already route every path to `index.html` |
 
 Uploaded verification documents are stored on the API server's disk. On hosts with ephemeral disks, attach a persistent volume or move uploads to object storage.
