@@ -7,6 +7,7 @@ types.setTypeParser(20, (v) => parseInt(v, 10));
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
   ssl: process.env.DB_SSL === 'true' ? { rejectUnauthorized: false } : false,
+  max: Number(process.env.DB_POOL_MAX) || 5,
 });
 
 const query = (text, params) => pool.query(text, params);

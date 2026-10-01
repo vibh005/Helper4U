@@ -44,7 +44,7 @@ Households usually hire domestic help through informal networks or unverified ag
 | Requirement | Status |
 |---|---|
 | Register and create profile | Done |
-| Upload identity and background documents (PDF, JPG, PNG, up to 5 MB) | Done |
+| Upload identity and background documents (PDF, JPG, PNG, up to 4 MB) | Done |
 | Manage availability, working hours and preferred plans and rates | Done |
 | Accept or reject requests | Done |
 | View assigned jobs and work history | Done |

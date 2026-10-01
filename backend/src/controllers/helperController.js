@@ -1,9 +1,6 @@
-const fs = require('fs');
-const path = require('path');
 const Helper = require('../db/helperModel');
 const AppError = require('../utils/AppError');
 const asyncHandler = require('../utils/asyncHandler');
-const { UPLOAD_DIR } = require('../middleware/upload');
 const Category = require('../db/categoryModel');
 const User = require('../db/userModel');
 const notify = require('../utils/notify');
@@ -111,28 +108,21 @@ exports.saveMyProfile = asyncHandler(async (req, res) => {
 
 exports.uploadDocument = asyncHandler(async (req, res) => {
   const file = req.file;
-  const cleanup = () => file && fs.unlink(file.path, () => {});
+  if (!file) throw new AppError('Attach a file in the "document" field');
+  if (!DOC_TYPES.includes(req.body.doc_type))
+    throw new AppError(`doc_type must be one of: ${DOC_TYPES.join(', ')}`);
+  const profile = await requireProfile(req.user.id);
+  if (profile.verification_status === 'verified')
+    throw new AppError('Your profile is already verified', 400);
 
-  try {
-    if (!file) throw new AppError('Attach a file in the "document" field');
-    if (!DOC_TYPES.includes(req.body.doc_type))
-      throw new AppError(`doc_type must be one of: ${DOC_TYPES.join(', ')}`);
-    const profile = await requireProfile(req.user.id);
-    if (profile.verification_status === 'verified')
-      throw new AppError('Your profile is already verified', 400);
-
-    const doc = await Helper.addDocument(profile.id, {
-      doc_type: req.body.doc_type,
-      original_name: file.originalname.slice(0, 255),
-      stored_name: file.filename,
-      mime_type: file.mimetype,
-      size_bytes: file.size,
-    });
-    res.status(201).json({ success: true, document: doc });
-  } catch (err) {
-    cleanup();
-    throw err;
-  }
+  const doc = await Helper.addDocument(profile.id, {
+    doc_type: req.body.doc_type,
+    original_name: file.originalname.slice(0, 255),
+    mime_type: file.mimetype,
+    size_bytes: file.size,
+    file_data: file.buffer,
+  });
+  res.status(201).json({ success: true, document: doc });
 });
 
 exports.downloadDocument = asyncHandler(async (req, res) => {
@@ -141,15 +131,14 @@ exports.downloadDocument = asyncHandler(async (req, res) => {
   if (req.user.role !== 'admin' && doc.user_id !== req.user.id)
     throw new AppError('Not allowed', 403);
 
-  const file = path.join(UPLOAD_DIR, path.basename(doc.stored_name));
-  if (!fs.existsSync(file)) throw new AppError('File is missing on the server', 404);
+  if (!doc.file_data) throw new AppError('File is missing on the server', 404);
   res
     .type(doc.mime_type)
     .setHeader(
       'Content-Disposition',
       `inline; filename="${encodeURIComponent(doc.original_name)}"`,
     );
-  res.sendFile(file);
+  res.send(doc.file_data);
 });
 
 exports.deleteDocument = asyncHandler(async (req, res) => {
@@ -161,7 +150,6 @@ exports.deleteDocument = asyncHandler(async (req, res) => {
   if (doc.status === 'approved') throw new AppError('Approved documents cannot be removed');
 
   await Helper.deleteDocument(doc.id);
-  fs.unlink(path.join(UPLOAD_DIR, path.basename(doc.stored_name)), () => {});
   res.json({ success: true, message: 'Document removed' });
 });
 

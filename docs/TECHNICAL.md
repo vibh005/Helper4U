@@ -4,7 +4,7 @@
 ```
 React (Vite, Tailwind)  --HTTPS/JSON-->  Express REST API  --pg-->  PostgreSQL
                                           |
-                                          +-- private upload folder (verification documents)
+                                          (verification documents are stored in the database)
 ```
 - **Frontend:** React 18, react-router 6, axios, Tailwind CSS v4.
 - **Backend:** Node.js, Express 4. Routes call controllers, controllers call models in `src/db`, models run SQL through a `pg` pool.
@@ -52,7 +52,7 @@ Key relations:
 - "Today" is computed in `APP_TIMEZONE` (default Asia/Kolkata). Dates are handled as `YYYY-MM-DD` strings.
 
 ## Security measures
-helmet headers, CORS limited to `CLIENT_URL`, request body size limit, rate limits on auth routes, parameterized queries only (sort and filter columns are whitelisted), uploads restricted by type and size and saved under random names outside any static folder, error messages that do not leak internals.
+helmet headers, CORS limited to `CLIENT_URL`, request body size limit, rate limits on auth routes, parameterized queries only (sort and filter columns are whitelisted), uploads restricted by type and size and stored in the database, never served as static files, error messages that do not leak internals.
 
 ## API reference
 See the tables in the root `README.md`. Every response has `success: true` or `success: false` with a `message`. List endpoints return `total`, `page`, `limit` and `pages`.
@@ -65,10 +65,10 @@ See the tables in the root `README.md`. Every response has `success: true` or `s
 | `DB_SSL` | `true` for hosted databases such as Neon |
 | `JWT_SECRET` | Long random secret for tokens |
 | `JWT_EXPIRES_IN` | Token lifetime, default 7d |
-| `CLIENT_URL` | Frontend origin allowed by CORS |
+| `CLIENT_URL` | Frontend origin allowed by CORS (only needed if the frontend is hosted separately) |
 | `ADMIN_NAME`, `ADMIN_EMAIL`, `ADMIN_PASSWORD` | Used by `npm run seed:admin` |
 | `APP_TIMEZONE` | Time zone for "today" |
-| `VITE_API_URL` (frontend) | API base URL in production |
+| `VITE_API_URL` (frontend) | API base URL, only if the API is hosted separately |
 
 ## Running locally
 ```
@@ -78,10 +78,12 @@ cd frontend && npm install && npm run dev
 `seed:demo` is optional and adds sample helpers and a household (password `Demo@1234`).
 
 ## Deployment
-- **Database:** Neon, Supabase or Render Postgres.
-- **API:** Render or Railway. Start command `npm start`; run `npm run db:init` and `npm run seed:admin` once. Set the environment variables above with `NODE_ENV=production`.
-- **Frontend:** Vercel or Netlify. Build `npm run build`, output `dist`. `vercel.json` and `public/_redirects` already send all routes to `index.html`. Set `VITE_API_URL`.
-- Uploaded documents live on the API server's disk. On a host with temporary disks, use a persistent volume or move uploads to object storage.
+Everything runs on Vercel:
+- `vercel.json` builds the frontend (`frontend/dist`) and sends `/api/*` requests to the serverless function in `api/index.js`, which loads the Express app. All other paths go to `index.html`.
+- The root `package.json` lists the backend dependencies so the function can install them.
+- The database is a free PostgreSQL project (Neon). Run `npm run db:init` and `npm run seed:admin` once from `backend/` against it.
+- Vercel environment variables: `DATABASE_URL`, `DB_SSL=true`, `JWT_SECRET`, `NODE_ENV=production`, optionally `APP_TIMEZONE`.
+- Verification documents are stored in the `helper_documents.file_data` column (limit 4 MB per file because of Vercel's request size limit).
 
 ## Testing performed
 - API: 117 automated checks covering every endpoint, permissions and booking rules.

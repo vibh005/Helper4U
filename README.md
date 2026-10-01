@@ -45,7 +45,7 @@ Run `npm run db:init` again after pulling this module (it adds new tables safely
 |---|---|---|
 | GET | /api/helpers/me/profile | Returns profile (or `null`) and uploaded documents |
 | PUT | /api/helpers/me/profile | Create (needs `service_type`) or partially update. Fields: `service_type` (maid/babysitter/nanny), `bio`, `experience_years`, `skills[]`, `languages[]`, `available_days[]` (Mon..Sun), `available_from`/`available_to` (HH:MM), `availability_status`, `preferred_plans[]` (hourly/monthly/yearly), `hourly_rate`, `monthly_rate`, `yearly_rate` |
-| POST | /api/helpers/me/documents | multipart form: `document` (PDF/JPG/PNG, max 5 MB) + `doc_type` (identity, address_proof, police_verification, background_check, other) |
+| POST | /api/helpers/me/documents | multipart form: `document` (PDF/JPG/PNG, max 4 MB) + `doc_type` (identity, address_proof, police_verification, background_check, other) |
 | DELETE | /api/helpers/me/documents/:id | Not allowed while under review or once approved |
 | POST | /api/helpers/me/submit-verification | Needs at least one `identity` document; sets status to `pending` |
 | GET | /api/helpers/documents/:id/file | Owner or admin only. Files are private and never served statically |
@@ -162,12 +162,14 @@ Screens by role:
 - **Helper:** dashboard (requests, earnings, reliability, rating), profile with plans and rates, document upload, submit for verification, jobs.
 - **Admin:** overview analytics, helper verification, users, service categories, bookings and attendance, complaints.
 
-## Deployment
+## Deployment (Vercel only)
 
-| Part | Suggested host | Settings |
-|---|---|---|
-| Database | Neon / Supabase / Render Postgres | Copy the connection string |
-| API (`backend/`) | Render / Railway | Build `npm install`, start `npm start`, then run `npm run db:init` and `npm run seed:admin` once. Env: `DATABASE_URL`, `DB_SSL=true`, `JWT_SECRET` (long random), `CLIENT_URL` (your frontend URL, for CORS), `ADMIN_*`, `APP_TIMEZONE`, `NODE_ENV=production` |
-| Frontend (`frontend/`) | Vercel / Netlify | Build `npm run build`, output `dist`, env `VITE_API_URL=https://<your-api>/api`; `vercel.json` and `public/_redirects` already route every path to `index.html` |
+The website and the API both run on Vercel from this one repository. The only other thing needed is a free PostgreSQL database.
 
-Uploaded verification documents are stored on the API server's disk. On hosts with ephemeral disks, attach a persistent volume or move uploads to object storage.
+1. **Database:** create a free project at neon.tech and copy the connection string.
+2. **Create the tables once** from your computer: put the connection string in `backend/.env` as `DATABASE_URL` with `DB_SSL=true`, then run `npm run db:init`, `npm run seed:admin` and optionally `npm run seed:demo` inside `backend/`.
+3. **Deploy:** on vercel.com choose Add New, then Project, and import the repo. Leave Root Directory empty (the repository root). Vercel reads `vercel.json`: it builds the frontend and runs the API as a function.
+4. **Environment variables** in Vercel: `DATABASE_URL`, `DB_SSL=true`, `JWT_SECRET` (long random text), `NODE_ENV=production`, plus `APP_TIMEZONE` if needed. `CLIENT_URL` and `VITE_API_URL` are not needed because the site and API share one address.
+5. Open the Vercel link. `/api/health` should report that the API is running.
+
+Uploaded verification documents are stored in the database, so they survive restarts. Uploads are limited to 4 MB because of Vercel's request size limit.

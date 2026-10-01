@@ -44,13 +44,16 @@ CREATE TABLE IF NOT EXISTS helper_documents (
   doc_type       VARCHAR(30) NOT NULL
                  CHECK (doc_type IN ('identity', 'address_proof', 'police_verification', 'background_check', 'other')),
   original_name  VARCHAR(255) NOT NULL,
-  stored_name    VARCHAR(255) NOT NULL,
   mime_type      VARCHAR(100) NOT NULL,
   size_bytes     INTEGER NOT NULL,
+  file_data      BYTEA,
   status         VARCHAR(20) NOT NULL DEFAULT 'pending'
                  CHECK (status IN ('pending', 'approved', 'rejected')),
   uploaded_at    TIMESTAMP NOT NULL DEFAULT NOW()
 );
+
+ALTER TABLE helper_documents ADD COLUMN IF NOT EXISTS file_data BYTEA;
+ALTER TABLE helper_documents DROP COLUMN IF EXISTS stored_name;
 
 CREATE INDEX IF NOT EXISTS idx_helper_docs_helper ON helper_documents(helper_id);
 

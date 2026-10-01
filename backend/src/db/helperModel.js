@@ -55,10 +55,10 @@ exports.setVerificationStatus = async (id, status) => {
 
 exports.addDocument = async (helperId, d) => {
   const { rows } = await query(
-    `INSERT INTO helper_documents (helper_id, doc_type, original_name, stored_name, mime_type, size_bytes)
+    `INSERT INTO helper_documents (helper_id, doc_type, original_name, mime_type, size_bytes, file_data)
      VALUES ($1, $2, $3, $4, $5, $6)
      RETURNING id, helper_id, doc_type, original_name, mime_type, size_bytes, status, uploaded_at`,
-    [helperId, d.doc_type, d.original_name, d.stored_name, d.mime_type, d.size_bytes],
+    [helperId, d.doc_type, d.original_name, d.mime_type, d.size_bytes, d.file_data],
   );
   return rows[0];
 };

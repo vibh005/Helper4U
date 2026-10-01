@@ -343,7 +343,7 @@ export default function HelperProfile() {
                       ))}
                     </Select>
                   </Field>
-                  <Field label="File" hint="PDF, JPG or PNG, up to 5 MB">
+                  <Field label="File" hint="PDF, JPG or PNG, up to 4 MB">
                     <input
                       type="file"
                       required
